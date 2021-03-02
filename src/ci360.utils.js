@@ -1,4 +1,6 @@
 const get360ViewProps = (image) => ({
+  marks: attr(image, 'data-marks'),
+  carId: parseInt(attr(image, 'data-carId')),
   folder: attr(image, 'folder') || attr(image, 'data-folder') || '/',
   filename: attr(image, 'filename') || attr(image, 'data-filename') || 'image-{index}.jpg',
   imageList: attr(image, 'image-list') || attr(image, 'data-image-list') || null,

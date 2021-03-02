@@ -27,6 +27,7 @@ class CI360Viewer {
     this.isClicked = false;
     this.loadedImages = 0;
     this.imagesLoaded = false;
+    this.Hotspots = [];
     this.reversed = false;
     this.fullScreenView = !!fullScreen;
     this.ratio = ratio;
@@ -36,10 +37,37 @@ class CI360Viewer {
     this.id = container.id;
     this.init(container);
   }
+  hasClickedOnHotspot(mouse) {
+    // TODO
+    // melhorar sensibilidade do click (proximidade) - referencia: https://stackoverflow.com/questions/9880279/how-do-i-add-a-simple-onclick-event-handler-to-a-canvas-element
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;  
+    const scaleY = this.canvas.height / rect.height;
 
+    const mouseXPos = (mouse.clientX - rect.left) * scaleX;
+    const mouseYPos = (mouse.clientY - rect.top) * scaleY;
+    
+    const tempHotspot = new this.HotspotDraw();
+
+    tempHotspot.XPos = mouseXPos - (tempHotspot.Width / 2);
+    tempHotspot.YPos = mouseYPos - (tempHotspot.Height/ 2);
+    this.Hotspots.forEach(({XPos,MarkID, frame, YPos, Mark}) => {
+        let v1 = tempHotspot.XPos < (((8 / 100) * XPos) + XPos);
+        let v2 = tempHotspot.XPos > (XPos - ((8 / 100) * XPos));
+        let y1 = tempHotspot.YPos < (((8 / 100) * YPos) + YPos);
+        let y2 = tempHotspot.YPos > (YPos - ((8 / 100) * YPos));
+        if((v1 && v2) && (y1 && y2)) {
+            this.hotspot_id = MarkID
+            console.log(this.carId);
+            document.getElementById('modalMark').style.display = "block";
+            document.getElementById('img-start').src = `https://s3-sa-east-1.amazonaws.com/qcarro/360/marks/${this.carId}/${this.hotspot_id}`;
+            //$(`#${MarkID}`).modal('toggle')
+        }
+    })
+  }
   mousedown(event) {
     event.preventDefault();
-
+    this.hasClickedOnHotspot(event);
     if (!this.imagesLoaded) return;
 
     if (this.glass) {
@@ -295,6 +323,7 @@ class CI360Viewer {
 
       ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
     }
+    this.redraw();
   }
 
   updatePercentageInLoader(percentage) {
@@ -338,6 +367,11 @@ class CI360Viewer {
   }
 
   onFirstImageLoaded(event) {
+    var divNova = document.createElement("div");
+    divNova.setAttribute("id", "modalMark");
+    divNova.setAttribute("class","modal");
+    divNova.innerHTML = '<div class="modal-content"><span class="close">&times;</span><img id="img-start" src=""></div>'
+    document.body.appendChild(divNova);
     if (!this.hide360Logo) {
       this.add360ViewIcon();
     }
@@ -402,6 +436,8 @@ class CI360Viewer {
     } else if (this.fullScreenView) {
       this.addCloseFullScreenView();
     }
+    
+    this.redraw();
   }
 
   onImageLoad(index, event) {
@@ -675,6 +711,13 @@ class CI360Viewer {
     const isReverse = this.controlReverse ? !this.spinReverse : this.spinReverse;
     const prev = this.container.querySelector('.cloudimage-360-prev');
     const next = this.container.querySelector('.cloudimage-360-next');
+    const closeModalDiv = (event) => {
+      if(event.target.className == "close"){
+        let closeButton = document.getElementById('modalMark')
+        closeButton.style.display = "none";
+      }
+    };
+    addEventListener('mousedown', closeModalDiv);
 
     if (!prev && !next) return;
 
@@ -773,18 +816,56 @@ class CI360Viewer {
     this.container.setAttribute('draggable', 'false');
     this.container.className = `${this.container.className} initialized`;
   }
-
+  HotspotDraw() {
+      // objeto do marcador
+      this.Mark = new Image();
+      this.Mark.src = 'https://i.imgur.com/caOHXPF.png';
+      this.MarkID = 0;
+      this.Width = 48;
+      this.Height = 48;
+      this.XPos = 0;
+      this.YPos = 0;
+      this.frame = null;
+  }
+  addMarks(marks){
+    if(marks != null) {
+      let marksArray = JSON.parse(marks)
+      if(marksArray.length){
+        marksArray.forEach(({XPos, YPos, frame, ID, data, MarkID}) => {
+            const hotspot = new this.HotspotDraw();
+            hotspot.XPos = XPos;
+            hotspot.YPos = YPos;
+            hotspot.frame = frame;
+            hotspot.id = ID;
+            hotspot.MarkID = MarkID;
+            hotspot.img = data;
+            this.Hotspots.push(hotspot);
+        })
+      }
+    }
+  }
+  redraw(){
+    const ctx = this.canvas.getContext("2d");
+    for (var i = 0; i < this.Hotspots.length; i++) {
+      let hotspot = this.Hotspots[i];
+      console.log(hotspot);
+      if(hotspot.frame === this.activeImage) {
+        hotspot.Mark.src = "https://i.imgur.com/caOHXPF.png";
+        ctx.drawImage(hotspot.Mark, hotspot.XPos, hotspot.YPos, hotspot.Width, hotspot.Height);
+      }
+    }
+  }
   init(container) {
     let {
-      folder, filename, imageList, indexZeroBase, amount, draggable = true, swipeable = true, keys, bottomCircle, bottomCircleOffset, boxShadow,
+      marks,carId, folder, filename, imageList, indexZeroBase, amount, draggable = true, swipeable = true, keys, bottomCircle, bottomCircleOffset, boxShadow,
       autoplay, speed, autoplayReverse, fullScreen, magnifier, ratio, responsive, ciToken, ciSize, ciOperation,
       ciFilters, lazyload, lazySelector, spinReverse, dragSpeed, stopAtEdges, controlReverse, hide360Logo, logoSrc
     } = get360ViewProps(container);
     const ciParams = { ciSize, ciToken, ciOperation, ciFilters };
-
     this.addInnerBox();
     this.addLoader();
-
+    this.marks = marks;
+    this.carId = carId;
     this.folder = folder;
     this.filename = filename;
     this.imageList = imageList;
@@ -813,6 +894,7 @@ class CI360Viewer {
     this.addCanvas();
 
     let src = this.getSrc(responsive, container, folder, filename, ciParams);
+    this.addMarks(marks);
 
     this.preloadImages(amount, src, lazyload, lazySelector, container, responsive, ciParams);
 
