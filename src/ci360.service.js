@@ -370,7 +370,7 @@ class CI360Viewer {
     var divNova = document.createElement("div");
     divNova.setAttribute("id", "modalMark");
     divNova.setAttribute("class","modal");
-    divNova.innerHTML = '<div class="modal-dialog shadow-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="close">&times;</span></button></div><div class="modal-body"><img id="img-start" src=""></div></div></div>'
+    divNova.innerHTML = '<div class="modal-dialog shadow-lg" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="close">&times;</span></button></div><div class="modal-body d-flex align-items-center justify-content-center"><img id="img-start" src=""></div></div></div>'
     document.body.appendChild(divNova);
     if (!this.hide360Logo) {
       this.add360ViewIcon();
