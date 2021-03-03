@@ -782,7 +782,7 @@ class CI360Viewer {
 
     if (this.ratio) {
       this.container.style.minHeight = this.container.offsetWidth * this.ratio + 'px';
-      this.canvas.height = parseInt(this.container.style.minHeight);
+      //this.canvas.height = parseInt(this.container.style.minHeight);
     }
 
     this.innerBox.appendChild(this.canvas);
@@ -810,10 +810,11 @@ class CI360Viewer {
   }
 
   applyStylesToContainer() {
-    this.container.style.position = 'relative';
+    this.container.style.position = 'absolute';
     this.container.style.width = '100%';
-    this.container.style.cursor = 'wait';
-    this.container.setAttribute('draggable', 'false');
+    this.container.style.margin = '5px auto';
+    this.container.style.left = '0';
+    this.container.style.transition = 'width 0.3s ease';
     this.container.className = `${this.container.className} initialized`;
   }
   HotspotDraw() {
@@ -856,6 +857,7 @@ class CI360Viewer {
     }
   }
   init(container) {
+    console.log(container);
     let {
       marks,carId, folder, filename, imageList, indexZeroBase, amount, draggable = true, swipeable = true, keys, bottomCircle, bottomCircleOffset, boxShadow,
       autoplay, speed, autoplayReverse, fullScreen, magnifier, ratio, responsive, ciToken, ciSize, ciOperation,
@@ -898,7 +900,7 @@ class CI360Viewer {
 
     this.preloadImages(amount, src, lazyload, lazySelector, container, responsive, ciParams);
 
-    this.attachEvents(draggable, swipeable, keys);
+    //this.attachEvents(draggable, swipeable, keys);
   }
 }
 
