@@ -51,17 +51,17 @@ class CI360Viewer {
 
     tempHotspot.XPos = mouseXPos - (tempHotspot.Width / 2);
     tempHotspot.YPos = mouseYPos - (tempHotspot.Height/ 2);
-    this.Hotspots.forEach(({XPos,MarkID, frame, YPos, Mark}) => {
+    this.Hotspots.forEach(({XPos,MarkID, frame, YPos, data, img}) => {
         let v1 = tempHotspot.XPos < (((8 / 100) * XPos) + XPos);
         let v2 = tempHotspot.XPos > (XPos - ((8 / 100) * XPos));
         let y1 = tempHotspot.YPos < (((8 / 100) * YPos) + YPos);
         let y2 = tempHotspot.YPos > (YPos - ((8 / 100) * YPos));
         if((v1 && v2) && (y1 && y2)) {
-            this.hotspot_id = MarkID
-            console.log(this.carId);
-            document.getElementById('modalMark').style.display = "block";
-            document.getElementById('img-start').src = `https://s3-sa-east-1.amazonaws.com/qcarro/360/marks/${this.carId}/${this.hotspot_id}`;
-            //$(`#${MarkID}`).modal('toggle')
+            this.hotspot_id = MarkID;
+            if(img != undefined){
+              document.getElementById('modalMark').style.display = "block";
+              document.getElementById('img-start').src = img;
+            }
         }
     })
   }
@@ -316,10 +316,10 @@ class CI360Viewer {
 
       ctx.drawImage(image, offsetX, offsetY, width, height);
     } else {
-      this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
-      this.canvas.style.width = this.container.offsetWidth + 'px';
-      this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / image.width * image.height;
-      this.canvas.style.height = this.container.offsetWidth / image.width * image.height + 'px';
+      this.canvas.width = image.width;
+      // this.canvas.style.width = this.container.offsetWidth + 'px';
+      this.canvas.height = image.height;
+      // this.canvas.style.height = this.container.offsetWidth / image.width * image.height + 'px';
 
       ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
     }
@@ -376,6 +376,8 @@ class CI360Viewer {
       this.add360ViewIcon();
     }
 
+    const currentImage = this.images[this.activeImage - 1];
+
     if (this.fullScreenView) {
       this.canvas.width = window.innerWidth * this.devicePixelRatio;
       this.canvas.style.width = window.innerWidth + 'px';
@@ -389,10 +391,13 @@ class CI360Viewer {
 
       ctx.drawImage(event.target, offsetX, offsetY, width, height);
     } else {
-      this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
-      this.canvas.style.width = this.container.offsetWidth + 'px';
-      this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / event.target.width * event.target.height;
-      this.canvas.style.height = this.container.offsetWidth / event.target.width * event.target.height + 'px';
+
+      // this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
+      this.canvas.width = currentImage.width;
+      this.canvas.height = currentImage.height;
+      // this.canvas.style.width = this.container.offsetWidth + 'px';
+      // this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / event.target.width * event.target.height;
+      // this.canvas.style.height = this.container.offsetWidth / event.target.width * event.target.height + 'px';
 
       const ctx = this.canvas.getContext("2d");
 
@@ -810,7 +815,7 @@ class CI360Viewer {
   }
 
   applyStylesToContainer() {
-    this.container.style.position = 'absolute';
+    this.container.style.position = 'relative';
     this.container.style.width = '100%';
     this.container.style.margin = '5px auto';
     this.container.style.left = '0';
@@ -849,7 +854,6 @@ class CI360Viewer {
     const ctx = this.canvas.getContext("2d");
     for (var i = 0; i < this.Hotspots.length; i++) {
       let hotspot = this.Hotspots[i];
-      console.log(hotspot);
       if(hotspot.frame === this.activeImage) {
         hotspot.Mark.src = "https://i.imgur.com/caOHXPF.png";
         ctx.drawImage(hotspot.Mark, hotspot.XPos, hotspot.YPos, hotspot.Width, hotspot.Height);
@@ -857,7 +861,6 @@ class CI360Viewer {
     }
   }
   init(container) {
-    console.log(container);
     let {
       marks,carId, folder, filename, imageList, indexZeroBase, amount, draggable = true, swipeable = true, keys, bottomCircle, bottomCircleOffset, boxShadow,
       autoplay, speed, autoplayReverse, fullScreen, magnifier, ratio, responsive, ciToken, ciSize, ciOperation,
@@ -900,7 +903,7 @@ class CI360Viewer {
 
     this.preloadImages(amount, src, lazyload, lazySelector, container, responsive, ciParams);
 
-    //this.attachEvents(draggable, swipeable, keys);
+    this.attachEvents(draggable, swipeable, keys);
   }
 }
 

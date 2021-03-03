@@ -56,7 +56,8 @@ var CI360Viewer = function () {
             MarkID = _ref.MarkID,
             frame = _ref.frame,
             YPos = _ref.YPos,
-            Mark = _ref.Mark;
+            data = _ref.data,
+            img = _ref.img;
 
         var v1 = tempHotspot.XPos < 8 / 100 * XPos + XPos;
         var v2 = tempHotspot.XPos > XPos - 8 / 100 * XPos;
@@ -64,10 +65,10 @@ var CI360Viewer = function () {
         var y2 = tempHotspot.YPos > YPos - 8 / 100 * YPos;
         if (v1 && v2 && y1 && y2) {
           _this.hotspot_id = MarkID;
-          console.log(_this.carId);
-          document.getElementById('modalMark').style.display = "block";
-          document.getElementById('img-start').src = 'https://s3-sa-east-1.amazonaws.com/qcarro/360/marks/' + _this.carId + '/' + _this.hotspot_id;
-          //$(`#${MarkID}`).modal('toggle')
+          if (img != undefined) {
+            document.getElementById('modalMark').style.display = "block";
+            document.getElementById('img-start').src = img;
+          }
         }
       });
     }
@@ -338,10 +339,10 @@ var CI360Viewer = function () {
 
         ctx.drawImage(image, offsetX, offsetY, width, height);
       } else {
-        this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
-        this.canvas.style.width = this.container.offsetWidth + 'px';
-        this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / image.width * image.height;
-        this.canvas.style.height = this.container.offsetWidth / image.width * image.height + 'px';
+        this.canvas.width = image.width;
+        // this.canvas.style.width = this.container.offsetWidth + 'px';
+        this.canvas.height = image.height;
+        // this.canvas.style.height = this.container.offsetWidth / image.width * image.height + 'px';
 
         ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
       }
@@ -403,6 +404,8 @@ var CI360Viewer = function () {
         this.add360ViewIcon();
       }
 
+      var currentImage = this.images[this.activeImage - 1];
+
       if (this.fullScreenView) {
         this.canvas.width = window.innerWidth * this.devicePixelRatio;
         this.canvas.style.width = window.innerWidth + 'px';
@@ -419,10 +422,13 @@ var CI360Viewer = function () {
 
         ctx.drawImage(event.target, offsetX, offsetY, width, height);
       } else {
-        this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
-        this.canvas.style.width = this.container.offsetWidth + 'px';
-        this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / event.target.width * event.target.height;
-        this.canvas.style.height = this.container.offsetWidth / event.target.width * event.target.height + 'px';
+
+        // this.canvas.width = this.container.offsetWidth * this.devicePixelRatio;
+        this.canvas.width = currentImage.width;
+        this.canvas.height = currentImage.height;
+        // this.canvas.style.width = this.container.offsetWidth + 'px';
+        // this.canvas.height = this.container.offsetWidth * this.devicePixelRatio / event.target.width * event.target.height;
+        // this.canvas.style.height = this.container.offsetWidth / event.target.width * event.target.height + 'px';
 
         var _ctx = this.canvas.getContext("2d");
 
@@ -851,7 +857,7 @@ var CI360Viewer = function () {
 
       if (this.ratio) {
         this.container.style.minHeight = this.container.offsetWidth * this.ratio + 'px';
-        this.canvas.height = parseInt(this.container.style.minHeight);
+        //this.canvas.height = parseInt(this.container.style.minHeight);
       }
 
       this.innerBox.appendChild(this.canvas);
@@ -883,8 +889,9 @@ var CI360Viewer = function () {
     value: function applyStylesToContainer() {
       this.container.style.position = 'relative';
       this.container.style.width = '100%';
-      this.container.style.cursor = 'wait';
-      this.container.setAttribute('draggable', 'false');
+      this.container.style.margin = '5px auto';
+      this.container.style.left = '0';
+      this.container.style.transition = 'width 0.3s ease';
       this.container.className = this.container.className + ' initialized';
     }
   }, {
@@ -934,7 +941,6 @@ var CI360Viewer = function () {
       var ctx = this.canvas.getContext("2d");
       for (var i = 0; i < this.Hotspots.length; i++) {
         var hotspot = this.Hotspots[i];
-        console.log(hotspot);
         if (hotspot.frame === this.activeImage) {
           hotspot.Mark.src = "https://i.imgur.com/caOHXPF.png";
           ctx.drawImage(hotspot.Mark, hotspot.XPos, hotspot.YPos, hotspot.Width, hotspot.Height);
